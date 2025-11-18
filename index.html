@@ -1,18 +1,447 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flames App</title>
-    <link rel="icon" type="image/x-icon" href="favicon.svg">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.0.0/dist/fonts/geist-sans/style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.0.0/dist/fonts/geist-mono/style.css">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Course Catalog — 50 Curated Classes</title>
+  <meta name="description" content="Browse 50 curated courses across Development, Design, Data, AI, Marketing and Business. Search, filter, sort and enroll — all in one page." />
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#0f1530;
+      --muted:#a7b0c4;
+      --text:#e8ecf8;
+      --brand:#6ea8ff;
+      --brand-2:#8a7bff;
+      --accent:#25d0a6;
+      --danger:#ff6b6b;
+      --ring: 0 0 0 3px color-mix(in srgb, var(--brand) 25%, transparent);
+      --radius:14px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+      --grid-gap:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 10% -10%, rgba(142,122,255,.18), transparent 60%),
+                  radial-gradient(1000px 700px at 110% -20%, rgba(110,168,255,.15), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.5;
+    }
+    .container{max-width:1200px;margin:0 auto;padding:28px}
+    header{
+      display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px
+    }
+    .brand{
+      display:flex;align-items:center;gap:12px
+    }
+    .logo{
+      width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand-2));
+      display:grid;place-items:center;box-shadow:var(--shadow)
+    }
+    .logo span{font-weight:800;color:white}
+    .title{font-size:clamp(22px,3vw,28px);font-weight:800;letter-spacing:.2px}
+    .subtitle{color:var(--muted);font-size:14px;margin-top:4px}
+
+    .toolbar{
+      display:grid;grid-template-columns:1fr repeat(4, minmax(0, 180px));gap:12px;width:100%
+    }
+    @media (max-width: 980px){
+      .toolbar{grid-template-columns:1fr 1fr 1fr;}
+      .toolbar > :nth-child(4), .toolbar > :nth-child(5){grid-column: span 3}
+    }
+    @media (max-width: 640px){
+      .toolbar{grid-template-columns:1fr;}
+    }
+    .control{
+      background:linear-gradient(180deg, #121936, #0e1430);border:1px solid rgba(255,255,255,.06);
+      border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;color:var(--text);box-shadow:var(--shadow)
+    }
+    .control input, .control select{
+      width:100%;background:transparent;border:0;outline:none;color:inherit;font:inherit
+    }
+    .control input::placeholder{color:#8a93ad}
+    .control:focus-within{box-shadow: var(--shadow), var(--ring);}
+    .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);color:var(--muted);cursor:pointer;user-select:none;transition:.2s}
+    .chip.active{background:linear-gradient(180deg,#1c2550,#151c42);color:#e9edff;border-color:rgba(142,122,255,.45)}
+
+    main{
+      margin-top:18px;display:grid;grid-template-columns:repeat(12, 1fr);gap:var(--grid-gap)
+    }
+    .sidebar{
+      grid-column: span 3;background:linear-gradient(180deg,#121a3e,#0d1331);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);
+      padding:16px;position:sticky;top:16px;height:max-content;box-shadow:var(--shadow)
+    }
+    .sidebar h3{margin:0 0 12px 0;font-size:14px;color:#c9d1f8;letter-spacing:.4px;text-transform:uppercase}
+    .side-group{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+    .side-group label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;cursor:pointer}
+
+    .grid{grid-column: span 9;display:grid;grid-template-columns:repeat(3, 1fr);gap:var(--grid-gap)}
+    @media (max-width: 1100px){.sidebar{grid-column:span 12;order:2}.grid{grid-column:span 12;grid-template-columns:repeat(2,1fr);order:1}}
+    @media (max-width: 640px){.grid{grid-template-columns:1fr}}
+
+    .card{
+      background:linear-gradient(180deg,#121936,#0e1430);border:1px solid rgba(255,255,255,.06);border-radius:16px;
+      overflow:hidden;display:flex;flex-direction:column;min-height:260px;position:relative;box-shadow:var(--shadow);
+      transition: transform .18s ease, box-shadow .18s ease; isolation:isolate
+    }
+    .card:hover{transform:translateY(-4px);box-shadow: 0 16px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05)}
+    .thumb{height:120px;background:linear-gradient(120deg, color-mix(in srgb, var(--brand) 25%, transparent), color-mix(in srgb, var(--brand-2) 25%, transparent));
+      display:flex;align-items:flex-end;justify-content:space-between;padding:12px}
+    .badge{background:rgba(0,0,0,.35);backdrop-filter: blur(6px); color:#e9edff;border:1px solid rgba(255,255,255,.18);padding:6px 10px;border-radius:999px;font-size:12px}
+    .level{background:rgba(255,255,255,.06)}
+    .content{padding:14px 14px 12px}
+    .course-title{font-weight:700;margin:2px 0 6px 0}
+    .meta{display:flex;gap:10px;color:#96a0bd;font-size:13px;flex-wrap:wrap}
+    .meta span{display:inline-flex;align-items:center;gap:6px}
+    .desc{color:#9aa4c5;font-size:13px;margin:10px 0 14px 0}
+    .actions{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,.06)}
+    .btn{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,#1a2352,#141c44);color:#e8ecff;font-weight:600;cursor:pointer}
+    .btn:hover{filter:brightness(1.08)}
+    .ghost{background:transparent;color:#b6c0de}
+    .rating{color:#f7c948}
+
+    .footer{display:flex;justify-content:center;margin:20px 0}
+    .load{padding:12px 18px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,#15204c,#101739);color:#e8ecff;font-weight:700}
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(3,6,20,.6);backdrop-filter: blur(6px);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
+    .modal{max-width:720px;width:100%;background:linear-gradient(180deg,#121936,#0e1430);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .modal-title{font-weight:800}
+    .close{background:transparent;border:0;color:#bfc8ea;font-size:20px;cursor:pointer}
+    .modal-body{padding:16px;color:#bfc8ea}
+
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"><span>📚</span></div>
+        <div>
+          <div class="title">Explore 50 Curated Courses</div>
+          <div class="subtitle">Search, filter, sort, and find your next skill in minutes.</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="toolbar" role="region" aria-label="Search and filters">
+      <div class="control" aria-label="Search courses">
+        <span aria-hidden="true">🔎</span>
+        <input id="q" type="text" placeholder="Search courses, e.g. React, UX, SQL, AI..." />
+      </div>
+      <div class="control">
+        <select id="category">
+          <option value="">All categories</option>
+          <option>Development</option>
+          <option>Design</option>
+          <option>Data</option>
+          <option>AI</option>
+          <option>Marketing</option>
+          <option>Business</option>
+        </select>
+      </div>
+      <div class="control">
+        <select id="level">
+          <option value="">All levels</option>
+          <option>Beginner</option>
+          <option>Intermediate</option>
+          <option>Advanced</option>
+        </select>
+      </div>
+      <div class="control">
+        <select id="duration">
+          <option value="">Any duration</option>
+          <option value="short">Under 3h</option>
+          <option value="medium">3–10h</option>
+          <option value="long">10h+</option>
+        </select>
+      </div>
+      <div class="control">
+        <select id="sort">
+          <option value="pop">Sort by popular</option>
+          <option value="rating">Highest rated</option>
+          <option value="new">Newest</option>
+          <option value="az">A → Z</option>
+        </select>
+      </div>
+    </div>
+
+    <main>
+      <aside class="sidebar" aria-label="Quick filters">
+        <h3>Quick filters</h3>
+        <div class="side-group" id="quick-cats"></div>
+        <h3>Levels</h3>
+        <div class="side-group">
+          <label><input type="checkbox" class="lvl" value="Beginner"> Beginner</label>
+          <label><input type="checkbox" class="lvl" value="Intermediate"> Intermediate</label>
+          <label><input type="checkbox" class="lvl" value="Advanced"> Advanced</label>
+        </div>
+        <h3>Badges</h3>
+        <div class="side-group">
+          <label><input type="checkbox" class="badge-filter" value="Certificate"> Certificate</label>
+          <label><input type="checkbox" class="badge-filter" value="Project"> Project</label>
+          <label><input type="checkbox" class="badge-filter" value="Career Path"> Career Path</label>
+        </div>
+      </aside>
+
+      <section class="grid" id="grid" aria-live="polite"></section>
+    </main>
+
+    <div class="footer">
+      <button class="load" id="loadMore">Load more</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-head">
+        <div class="modal-title" id="modal-title">Course</div>
+        <button class="close" id="closeModal" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    // --- Data generation (50 items) ---
+    const categories = ["Development","Design","Data","AI","Marketing","Business"];
+    const levels = ["Beginner","Intermediate","Advanced"];
+    const badges = ["Certificate","Project","Career Path", null];
+
+    const baseCourses = [
+      {title:"Modern JavaScript Essentials", cat:"Development"},
+      {title:"React + TypeScript From Scratch", cat:"Development"},
+      {title:"Node & APIs: Practical Guide", cat:"Development"},
+      {title:"UI Design Fundamentals", cat:"Design"},
+      {title:"Figma for Prototyping", cat:"Design"},
+      {title:"Design Systems 101", cat:"Design"},
+      {title:"SQL for Analysts", cat:"Data"},
+      {title:"Data Visualization with Python", cat:"Data"},
+      {title:"Power BI in Practice", cat:"Data"},
+      {title:"Intro to Machine Learning", cat:"AI"},
+      {title:"Build with LLMs", cat:"AI"},
+      {title:"AI Product Management", cat:"AI"},
+      {title:"Digital Marketing Bootcamp", cat:"Marketing"},
+      {title:"SEO & Content Strategy", cat:"Marketing"},
+      {title:"Performance Ads Mastery", cat:"Marketing"},
+      {title:"Startup Finance Basics", cat:"Business"},
+      {title:"Agile & Scrum Practical", cat:"Business"},
+      {title:"Leadership & Communication", cat:"Business"},
+    ];
+
+    const random = (min,max)=> Math.round(Math.random()*(max-min)+min);
+
+    const courses = Array.from({length:50}, (_,i)=>{
+      const seed = baseCourses[i % baseCourses.length];
+      const hours = [2,3,4,6,8,10,12,16][i % 8];
+      const rating = (4 + (i % 10)/20 + (Math.random()*0.2)).toFixed(2); // ~4.0–4.9
+      const level = levels[i % levels.length];
+      const badge = badges[i % badges.length];
+      const cat = categories[i % categories.length];
+      const id = i+1;
+      return {
+        id,
+        title: seed.title + (i >= baseCourses.length ? ` ${Math.floor(i/baseCourses.length)+1}` : ""),
+        category: seed.cat ?? cat,
+        level,
+        hours,
+        rating: Number(rating),
+        students: random(300, 8200),
+        badge,
+        updated: new Date(Date.now() - random(2, 280)*24*60*60*1000),
+        description: `Hands-on learning with real projects. Master ${seed.title.replace(/\s\d+$/,'')} through bite-sized lessons and guided exercises.`
+      }
+    });
+
+    // --- State ---
+    let state = {
+      q: "",
+      category: "",
+      level: "",
+      duration: "",
+      sort: "pop",
+      page: 1,
+      perPage: 9
+    };
+
+    const els = {
+      grid: document.getElementById('grid'),
+      q: document.getElementById('q'),
+      category: document.getElementById('category'),
+      level: document.getElementById('level'),
+      duration: document.getElementById('duration'),
+      sort: document.getElementById('sort'),
+      load: document.getElementById('loadMore'),
+      modal: document.getElementById('modal'),
+      modalTitle: document.getElementById('modal-title'),
+      modalBody: document.getElementById('modal-body'),
+      quickCats: document.getElementById('quick-cats')
+    };
+
+    // Quick category chips
+    categories.forEach(c=>{
+      const chip = document.createElement('button');
+      chip.className = 'chip';
+      chip.textContent = c;
+      chip.addEventListener('click',()=>{
+        if(state.category === c){ state.category = ""; }
+        else { state.category = c; }
+        syncControls();
+        render(true);
+      });
+      els.quickCats.appendChild(chip);
+    });
+
+    function syncControls(){
+      els.category.value = state.category;
+      els.level.value = state.level;
+      els.duration.value = state.duration;
+      els.sort.value = state.sort;
+      Array.from(els.quickCats.children).forEach(ch=>{
+        ch.classList.toggle('active', ch.textContent === state.category && state.category);
+      })
+    }
+
+    // --- Filtering & sorting ---
+    function applyFilters(list){
+      const q = state.q.trim().toLowerCase();
+      let out = list.filter(c=>{
+        const matchesQ = !q || (c.title + ' ' + c.description).toLowerCase().includes(q);
+        const matchesCat = !state.category || c.category === state.category;
+        const matchesLevel = !state.level || c.level === state.level;
+        const matchesDur = !state.duration ||
+          (state.duration === 'short' && c.hours < 3) ||
+          (state.duration === 'medium' && c.hours >=3 && c.hours <=10) ||
+          (state.duration === 'long' && c.hours > 10);
+
+        // sidebar checkboxes
+        const lvlChecks = Array.from(document.querySelectorAll('.lvl:checked')).map(el=>el.value);
+        const badgeChecks = Array.from(document.querySelectorAll('.badge-filter:checked')).map(el=>el.value);
+        const sideLvlOk = lvlChecks.length ? lvlChecks.includes(c.level) : true;
+        const sideBadgeOk = badgeChecks.length ? (c.badge && badgeChecks.includes(c.badge)) : true;
+
+        return matchesQ && matchesCat && matchesLevel && matchesDur && sideLvlOk && sideBadgeOk;
+      });
+
+      const sorters = {
+        pop: (a,b)=> b.students - a.students,
+        rating: (a,b)=> b.rating - a.rating,
+        new: (a,b)=> b.updated - a.updated,
+        az: (a,b)=> a.title.localeCompare(b.title)
+      };
+      out.sort(sorters[state.sort] || sorters.pop);
+      return out;
+    }
+
+    // --- Rendering ---
+    function starStr(r){
+      const full = Math.floor(r);
+      const half = r - full >= 0.5;
+      return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5-full - (half?1:0));
+    }
+
+    function fmt(n){return n.toLocaleString()}
+
+    function card(c){
+      const badgeHtml = c.badge ? `<span class="badge">${c.badge}</span>` : '';
+      return `
+        <article class="card" data-id="${c.id}">
+          <div class="thumb" style="background: linear-gradient(120deg, rgba(110,168,255,.25), rgba(138,123,255,.22));">
+            <span class="badge level">${c.level}</span>
+            <span class="badge">${c.category}</span>
+          </div>
+          <div class="content">
+            <h3 class="course-title">${c.title}</h3>
+            <div class="meta">
+              <span class="rating" title="${c.rating} rating">${c.rating} • ${starStr(c.rating)}</span>
+              <span>⏱ ${c.hours}h</span>
+              <span>👥 ${fmt(c.students)}</span>
+            </div>
+            <p class="desc">${c.description}</p>
+          </div>
+          <div class="actions">
+            ${badgeHtml}
+            <div>
+              <button class="btn ghost" data-action="preview" data-id="${c.id}">Preview</button>
+              <button class="btn" data-action="enroll" data-id="${c.id}">Enroll</button>
+            </div>
+          </div>
+        </article>
+      `
+    }
+
+    function render(resetPage=false){
+      if(resetPage) state.page = 1;
+      const list = applyFilters(courses);
+      const total = list.length;
+      const upto = state.page * state.perPage;
+      const visible = list.slice(0, upto);
+      els.grid.innerHTML = visible.map(card).join('');
+      els.load.style.display = upto >= total ? 'none' : 'inline-flex';
+      attachCardEvents();
+    }
+
+    // --- Events ---
+    function debounce(fn, ms){let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+
+    els.q.addEventListener('input', debounce(e=>{state.q = e.target.value; render(true)}, 180));
+    els.category.addEventListener('change', e=>{state.category = e.target.value; syncControls(); render(true)});
+    els.level.addEventListener('change', e=>{state.level = e.target.value; render(true)});
+    els.duration.addEventListener('change', e=>{state.duration = e.target.value; render(true)});
+    els.sort.addEventListener('change', e=>{state.sort = e.target.value; render(true)});
+
+    document.querySelectorAll('.lvl, .badge-filter').forEach(cb=> cb.addEventListener('change', ()=>render(true)));
+
+    els.load.addEventListener('click', ()=>{state.page++; render()});
+
+    function attachCardEvents(){
+      document.querySelectorAll('[data-action=preview]').forEach(b=> b.addEventListener('click', (e)=>{
+        const id = Number(e.currentTarget.getAttribute('data-id'));
+        const c = courses.find(x=>x.id===id);
+        if(!c) return;
+        els.modalTitle.textContent = c.title;
+        els.modalBody.innerHTML = `
+          <p><strong>Category:</strong> ${c.category} • <strong>Level:</strong> ${c.level}</p>
+          <p><strong>Duration:</strong> ${c.hours} hours • <strong>Rating:</strong> ${c.rating} (${fmt(c.students)} learners)</p>
+          <hr style="border-color: rgba(255,255,255,.08); margin: 12px 0;">
+          <p>${c.description}</p>
+        `;
+        showModal(true);
+      }))
+
+      document.querySelectorAll('[data-action=enroll]').forEach(b=> b.addEventListener('click', (e)=>{
+        const id = Number(e.currentTarget.getAttribute('data-id'));
+        const c = courses.find(x=>x.id===id);
+        alert(`✅ Enrolled in "${c.title}"!`);
+      }))
+
+      document.querySelectorAll('.card').forEach(card=>{
+        card.addEventListener('keydown', (e)=>{
+          if(e.key==='Enter') card.querySelector('[data-action=preview]')?.click();
+        })
+      })
+    }
+
+    // --- Modal ---
+    function showModal(open){
+      els.modal.style.display = open ? 'flex' : 'none';
+      if(open){
+        els.modal.querySelector('.modal').focus?.();
+      }
+    }
+    document.getElementById('closeModal').addEventListener('click', ()=> showModal(false));
+    els.modal.addEventListener('click', (e)=>{ if(e.target === els.modal) showModal(false) });
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') showModal(false) });
+
+    // Initial paint
+    syncControls();
+    render(true);
+  </script>
+</body>
 </html>
